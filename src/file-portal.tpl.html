@@ -1,0 +1,535 @@
+<title>社内ファイルポータル</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap">
+
+<style>
+/* ============================================================
+   トークン（ライト＝基準。dark は同じ変数を上書きするだけ）
+   ============================================================ */
+:root{
+  --pink:        #f7bfd0;
+  --pink-soft:   #fdeef3;
+  --pink-deep:   #e28ba7;
+  --orange:      #fbd4ac;
+  --orange-soft: #fff3e6;
+  --orange-deep: #dd9a56;
+  --green:       #c2e3c4;
+  --green-soft:  #eef8ef;
+  --green-deep:  #6faa74;
+  --blue:        #bfd9f4;
+  --blue-soft:   #ecf4fd;
+  --blue-deep:   #6d9dcd;
+  --purple:      #d3c8ec;
+  --purple-soft: #f2eefb;
+  --purple-deep: #8f7cc0;
+
+  --ground:   #f7f4f6;
+  --surface:  #ffffff;
+  --surface-2:#fbf9fa;
+  --paper:    #ffffff;
+  --line:     #eee7ea;
+  --line-2:   #e3dbe0;
+  --ink:      #4b4450;
+  --ink-2:    #7d7484;
+  --ink-3:    #a79eae;
+
+  --shadow-s: 0 1px 2px rgba(90,70,90,.05), 0 2px 8px rgba(90,70,90,.05);
+  --shadow-m: 0 2px 6px rgba(90,70,90,.06), 0 10px 26px rgba(90,70,90,.09);
+
+  --r-m: 16px;
+  --r-l: 22px;
+  --r-xl: 28px;
+  --r-pill: 999px;
+}
+/* dark トークン（システムがダークのとき。明示ライトには効かせない） */
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --pink:#8d5266; --pink-soft:#3b2a32; --pink-deep:#f2b6c8;
+    --orange:#8b6440; --orange-soft:#3a3027; --orange-deep:#f0c391;
+    --green:#4f7a55; --green-soft:#26312a; --green-deep:#a9d8ad;
+    --blue:#4d709b; --blue-soft:#252f3b; --blue-deep:#a7c9ec;
+    --purple:#6a5a92; --purple-soft:#2d2839; --purple-deep:#c6b7e8;
+
+    --ground:#1c191e; --surface:#242028; --surface-2:#2a2530; --paper:#ece8ef;
+    --line:#332d38; --line-2:#3f3846;
+    --ink:#efe9f1; --ink-2:#b6acbd; --ink-3:#8b8292;
+
+    --shadow-s: 0 1px 2px rgba(0,0,0,.30), 0 2px 8px rgba(0,0,0,.24);
+    --shadow-m: 0 2px 6px rgba(0,0,0,.34), 0 10px 26px rgba(0,0,0,.34);
+  }
+}
+:root[data-theme="dark"]{
+  --pink:#8d5266; --pink-soft:#3b2a32; --pink-deep:#f2b6c8;
+  --orange:#8b6440; --orange-soft:#3a3027; --orange-deep:#f0c391;
+  --green:#4f7a55; --green-soft:#26312a; --green-deep:#a9d8ad;
+  --blue:#4d709b; --blue-soft:#252f3b; --blue-deep:#a7c9ec;
+  --purple:#6a5a92; --purple-soft:#2d2839; --purple-deep:#c6b7e8;
+
+  --ground:#1c191e; --surface:#242028; --surface-2:#2a2530; --paper:#ece8ef;
+  --line:#332d38; --line-2:#3f3846;
+  --ink:#efe9f1; --ink-2:#b6acbd; --ink-3:#8b8292;
+
+  --shadow-s: 0 1px 2px rgba(0,0,0,.30), 0 2px 8px rgba(0,0,0,.24);
+  --shadow-m: 0 2px 6px rgba(0,0,0,.34), 0 10px 26px rgba(0,0,0,.34);
+}
+
+/* ============================================================
+   ベース
+   ============================================================ */
+*,*::before,*::after{ box-sizing:border-box; }
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:"Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",system-ui,sans-serif;
+  font-size:14px;
+  line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{
+  font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Yu Gothic",system-ui,sans-serif;
+  font-weight:700; text-wrap:balance; margin:0; letter-spacing:.01em;
+}
+button{ font:inherit; color:inherit; cursor:pointer; border:0; background:none; }
+input{ font:inherit; color:inherit; }
+a{ color:inherit; text-decoration:none; }
+img{ display:block; }
+:focus-visible{ outline:2.5px solid var(--purple-deep); outline-offset:2px; border-radius:6px; }
+.label{
+  font-family:"Zen Maru Gothic",system-ui,sans-serif;
+  font-size:11px; font-weight:700; letter-spacing:.08em; color:var(--ink-3);
+}
+.sr{ position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+
+/* ============================================================
+   トップバー
+   ============================================================ */
+.topbar{
+  background:linear-gradient(100deg,var(--pink) 0%, var(--pink) 55%, var(--purple) 190%);
+  color:#fff;
+  padding:12px 22px;
+  display:flex; align-items:center; gap:14px;
+  position:sticky; top:0; z-index:40;
+  box-shadow:var(--shadow-s);
+}
+.brand{ display:flex; align-items:center; gap:11px; min-width:0; }
+.brand-badge{
+  width:36px; height:36px; flex:none; border-radius:12px;
+  background:rgba(255,255,255,.24); display:grid; place-items:center;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);
+}
+.brand-name{
+  font-family:"Zen Maru Gothic",system-ui,sans-serif;
+  font-weight:700; font-size:17px; color:#fff;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.brand-sub{
+  font-family:"Zen Maru Gothic",system-ui,sans-serif;
+  font-weight:500; font-size:15px;
+  color:rgba(255,255,255,.92); letter-spacing:.06em;
+  white-space:nowrap;
+  margin-left:6px; padding-left:16px;
+  border-left:1px solid rgba(255,255,255,.55);
+}
+
+/* トップバー内の検索バー */
+.topsearch{
+  margin-left:auto;
+  flex:1 1 320px;
+  max-width:560px;
+  display:flex; align-items:center; gap:9px;
+  height:40px; padding:0 16px;
+  border-radius:var(--r-pill);
+  background:var(--surface);
+  box-shadow:0 1px 3px rgba(120,70,95,.14), inset 0 0 0 1px rgba(255,255,255,.5);
+  transition:box-shadow .16s ease;
+}
+.topsearch:focus-within{
+  box-shadow:0 1px 3px rgba(120,70,95,.14), 0 0 0 4px rgba(255,255,255,.45);
+}
+.topsearch svg{ width:17px; height:17px; color:var(--ink-3); flex:none; }
+.topsearch input{
+  flex:1; min-width:0; border:0; background:none; outline:none;
+  font-size:13.5px; color:var(--ink);
+}
+.topsearch input::placeholder{ color:var(--ink-3); }
+
+/* ============================================================
+   2カラムシェル（横幅いっぱい）
+   ============================================================ */
+.shell{
+  display:grid;
+  grid-template-columns:212px minmax(0,1fr);
+  gap:14px;
+  align-items:start;
+  padding:14px;
+}
+.panel{ background:var(--surface); border-radius:var(--r-xl); box-shadow:var(--shadow-s); }
+
+/* ---------- 左ナビ ---------- */
+.nav{ padding:14px 11px; position:sticky; top:74px; }
+.nav-head{ padding:2px 8px 10px; }
+.navlist{ display:flex; flex-direction:column; gap:3px; }
+.navitem{
+  display:flex; align-items:center; gap:10px;
+  padding:8px 10px; border-radius:var(--r-m);
+  color:var(--ink-2); font-weight:500; text-align:left; width:100%;
+  transition:background .16s ease, color .16s ease;
+}
+.navitem:hover{ background:var(--surface-2); color:var(--ink); }
+.navitem[aria-current="true"]{
+  background:var(--pink-soft); color:var(--ink); font-weight:700;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--pink) 55%, transparent);
+}
+.navitem .chip{ margin-left:auto; font-size:11px; font-weight:700; color:var(--ink-3); font-variant-numeric:tabular-nums; }
+.tile{ width:28px; height:28px; flex:none; border-radius:9px; display:grid; place-items:center; }
+.tile svg{ width:16px; height:16px; }
+.t-pink  { background:var(--pink-soft);   color:var(--pink-deep); }
+.t-orange{ background:var(--orange-soft); color:var(--orange-deep); }
+.t-green { background:var(--green-soft);  color:var(--green-deep); }
+.t-blue  { background:var(--blue-soft);   color:var(--blue-deep); }
+.t-purple{ background:var(--purple-soft); color:var(--purple-deep); }
+
+.nav-foot{
+  margin-top:14px; padding:11px; border-radius:var(--r-m);
+  background:var(--surface-2); border:1px dashed var(--line-2);
+  font-size:11px; color:var(--ink-2); line-height:1.6;
+}
+.nav-foot b{ color:var(--ink); font-weight:700; }
+.nav-foot a{ color:var(--blue-deep); font-weight:700; }
+.nav-foot a:hover{ text-decoration:underline; }
+
+/* ---------- 中央 ---------- */
+.main{ padding:16px; display:flex; flex-direction:column; gap:13px; }
+.clear{ color:var(--ink-3); font-size:12px; font-weight:700; padding:4px 6px; border-radius:8px; }
+.clear:hover{ color:var(--ink); background:var(--line); }
+
+.tabs{ display:flex; gap:8px; }
+
+
+/* ---------- ファイルグリッド ---------- */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(172px,1fr));
+  gap:12px;
+}
+.card{
+  position:relative;
+  display:flex; flex-direction:column; gap:8px;
+  border-radius:var(--r-l);
+  padding:8px 8px 10px;
+  box-shadow:var(--shadow-s);
+  transition:transform .2s cubic-bezier(.22,.9,.3,1), box-shadow .2s ease;
+}
+/* リンクの当たり判定（★の下には敷かない） */
+.card-hit{
+  position:absolute; inset:0;
+  z-index:1;
+  border-radius:var(--r-l);
+}
+.card-hit:focus-visible{ outline-offset:-3px; }
+.card:hover{ transform:translateY(-3px); box-shadow:var(--shadow-m); }
+.g-pink  { background:linear-gradient(155deg,var(--pink-soft),color-mix(in srgb,var(--pink) 42%, var(--surface))); }
+.g-blue  { background:linear-gradient(155deg,var(--blue-soft),color-mix(in srgb,var(--blue) 42%, var(--surface))); }
+.g-green { background:linear-gradient(155deg,var(--green-soft),color-mix(in srgb,var(--green) 42%, var(--surface))); }
+.g-orange{ background:linear-gradient(155deg,var(--orange-soft),color-mix(in srgb,var(--orange) 42%, var(--surface))); }
+.g-purple{ background:linear-gradient(155deg,var(--purple-soft),color-mix(in srgb,var(--purple) 42%, var(--surface))); }
+
+.thumb{
+  position:relative;
+  aspect-ratio:3 / 4;
+  border-radius:13px;
+  overflow:hidden;
+  background:var(--paper);
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.05), var(--shadow-s);
+  display:grid; place-items:center;
+}
+.thumb img{ width:100%; height:100%; object-fit:contain; }
+/* お気に入りトグル（☆ ⇄ ★） */
+.fav-btn{
+  position:absolute; top:13px; left:13px;
+  z-index:3;
+  width:30px; height:30px; border-radius:var(--r-pill);
+  display:grid; place-items:center;
+  background:rgba(255,255,255,.94);
+  box-shadow:0 1px 4px rgba(60,40,60,.16);
+  color:var(--ink-3);
+  font-size:15px; line-height:1;
+  transition:transform .15s ease, color .15s ease, background .15s ease;
+}
+.fav-btn:hover{ transform:scale(1.12); color:var(--orange-deep); background:#fff; }
+.fav-btn:active{ transform:scale(.94); }
+.fav-btn[aria-pressed="true"]{ color:#f0a92e; }
+:root[data-theme="dark"] .fav-btn,
+:root:not([data-theme="light"]) .fav-btn{ background:rgba(255,255,255,.9); }
+.badge-ext{
+  position:absolute; top:6px; right:6px;
+  z-index:2; pointer-events:none;
+  background:rgba(255,255,255,.94);
+  border-radius:7px; padding:1px 6px;
+  font-family:"Zen Maru Gothic",system-ui,sans-serif;
+  font-size:9px; font-weight:700; letter-spacing:.06em;
+  color:var(--pink-deep);
+  box-shadow:0 1px 4px rgba(60,40,60,.16);
+}
+.card-name{
+  font-family:"Zen Maru Gothic",system-ui,sans-serif;
+  font-weight:700; font-size:12.5px; line-height:1.45; color:var(--ink);
+  overflow-wrap:anywhere;
+}
+.card-foot{ display:flex; align-items:center; gap:6px; font-size:10.5px; color:var(--ink-2); }
+.card-foot .owner{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.card-foot .go{ margin-left:auto; display:inline-flex; align-items:center; gap:3px; color:var(--blue-deep); font-weight:700; white-space:nowrap; }
+.card-foot .go svg{ width:11px; height:11px; }
+.card:hover .card-foot .go{ text-decoration:underline; }
+
+.empty{
+  grid-column:1/-1; border-radius:var(--r-l);
+  border:1px dashed var(--line-2); background:var(--surface-2);
+  padding:34px 22px; text-align:center;
+}
+.empty h3{ font-size:15px; margin-bottom:6px; }
+.empty p{ margin:0; color:var(--ink-2); font-size:12.5px; }
+
+/* ============================================================
+   レスポンシブ
+   ============================================================ */
+@media (max-width:820px){
+  .shell{ grid-template-columns:minmax(0,1fr); padding:12px; gap:12px; }
+  .nav{ position:static; padding:11px; }
+  .nav-head, .nav-foot{ display:none; }
+  .navlist{ flex-direction:row; overflow-x:auto; gap:8px; padding-bottom:4px; }
+  .navitem{ width:auto; flex:none; white-space:nowrap; padding:7px 13px 7px 8px; }
+  .navitem .chip{ margin-left:6px; }
+  .main{ padding:13px; }
+}
+@media (max-width:700px){
+  .topbar{ flex-wrap:wrap; row-gap:10px; }
+  .topsearch{ flex-basis:100%; margin-left:0; max-width:none; }
+}
+@media (max-width:520px){
+  .brand-sub{ display:none; }
+  .grid{ grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px; }
+}
+@media (prefers-reduced-motion:reduce){
+  *{ animation:none !important; transition:none !important; }
+}
+</style>
+
+<!-- ===================== トップバー ===================== -->
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-badge" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+        <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/>
+        <path d="M14 3v5h5"/><path d="M9 13h6"/><path d="M9 17h4"/>
+      </svg>
+    </div>
+    <div class="brand-name">社内ファイルポータル</div>
+    <div class="brand-sub">ケイクリエイト ／ あれどこだっけ？</div>
+  </div>
+
+  <label class="topsearch">
+    <span class="sr">ファイル名・キーワード・管理者で検索</span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+    <input id="q" type="search" placeholder="ファイル名・キーワード・管理者で検索" autocomplete="off">
+    <button class="clear" id="clearBtn" hidden>クリア</button>
+  </label>
+</header>
+
+<!-- ===================== 2カラム ===================== -->
+<div class="shell">
+
+  <nav class="panel nav" aria-label="ファイルの絞り込み">
+    <div class="nav-head"><span class="label">ライブラリ</span></div>
+    <div class="navlist" id="navlist" role="tablist" aria-label="種類で絞り込む"></div>
+    <div class="nav-foot">
+      <b>格納先</b><br>
+      Gドライブ ／ BOXからの移行データ → ★媒体資料★ → 1.よく使う媒体資料<br>
+      <a id="folderLink" href="#" target="_blank" rel="noopener">フォルダを開く ↗</a>
+    </div>
+  </nav>
+
+  <main class="panel main">
+    <div class="grid" id="grid"></div>
+  </main>
+</div>
+
+<script>
+/* サムネイル画像（対象ファイルの1ページ目を埋め込み） */
+const THUMBS = __THUMBS_JSON__;
+
+/* H列の閲覧URL（33〜41行は9行とも同じフォルダを指している） */
+const VIEW_URL = "https://drive.google.com/drive/folders/1K09MgX8KPz6VqrlBZF01K3s3diOHLn2S?usp=sharing";
+
+/* データ：インデックスシート「インデックス」33〜41行目
+   label = D列 ／ file = 実ファイル名 ／ owner = I列 ／ url = H列の閲覧URL ／ tags = J列 */
+const FILES = [
+  { row:33, label:"SP事例集_ペライチ", file:"SP事例集_ペライチver_K.pdf", type:"PDF", fav:false, owner:"上ヶ市", tone:"pink",
+    url:VIEW_URL,
+    tags:["SP商材一覧","セールスプロモーション","お仕事ノート","お仕事ブック","Start!","キャリア教育"] },
+  { row:34, label:"青色媒体資料", file:"★媒体資料_青色_2607.pdf", type:"PDF", fav:false, owner:"伊藤", tone:"blue",
+    url:VIEW_URL,
+    tags:["くれよん","自社限定キャンペーン価格表","WEB商材案内","6版","24ページ"] },
+  { row:35, label:"黄色媒体資料", file:"★媒体資料_黄_2507.pdf", type:"PDF", fav:false, owner:"伊藤", tone:"orange",
+    url:VIEW_URL,
+    tags:["くれよん","媒体資料（定価版）","発行部数・配布エリア","地域みっちゃく生活情報誌"] },
+  { row:36, label:"アットカンパニー", file:"アットカンパニー媒体資料_2604.pdf", type:"PDF", fav:false, owner:"—", tone:"green",
+    url:VIEW_URL,
+    tags:["@company","採用HP作成サービス","応募者管理・ATS","Indeed連携","求人・採用支援"] },
+  { row:37, label:"ハイブリッド集客", file:"ハイブリッド集客資料_K.pdf", type:"PDF", fav:false, owner:"—", tone:"purple",
+    url:VIEW_URL,
+    tags:["Web広告×くれよん","新規顧客・潜在層","リーチ課題","オンライン＋オフライン"] },
+  { row:38, label:"ポスティング需要", file:"情報誌の強みをご紹介(ポスティング需要).pdf", type:"PDF", fav:false, owner:"—", tone:"pink",
+    url:VIEW_URL,
+    tags:["ポスティング市場","日本の広告費","マインドシェア","プッシュ媒体・プル媒体"] },
+  { row:39, label:"LP商材", file:"新LP商材_2604.pdf", type:"PDF", fav:false, owner:"—", tone:"blue",
+    url:VIEW_URL,
+    tags:["超速LP制作サービス","15万円・最短1週間","AI活用","Web集客","ランディングページ"] },
+  { row:40, label:"新聞折込比較表", file:"新聞折り込み比較表_K.pdf", type:"PDF", fav:false, owner:"—", tone:"green",
+    url:VIEW_URL,
+    tags:["新聞折込の約3倍リーチ","世帯カバー率","中日新聞朝刊折込との比較","くれよん配布部数"] },
+  { row:41, label:"バイラルプラン", file:"バイラルプラン資料_K.pdf", type:"PDF", fav:false, owner:"—", tone:"orange",
+    url:VIEW_URL,
+    tags:["VIRAL PLAN","情報誌×Meta広告","Instagram広告","月30,000円〜","業種別掲載実績"] }
+];
+
+const I = {
+  files:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7a2 2 0 0 1 2-2h3l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg>',
+  star :'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.85-4.25 4.15 1 5.85L12 16.9l-5.25 2.8 1-5.85L3.5 9.65l5.9-.85z"/></svg>',
+  clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4.5l3 1.8"/></svg>',
+  pdf  :'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 15h1.6a1.2 1.2 0 0 0 0-2.4H9V18"/></svg>',
+  sheet:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2.4"/><path d="M4 10h16M10 10v10M4 15h16"/></svg>',
+  deck :'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2.2"/><path d="M12 16v4M8.5 20h7"/></svg>',
+  form :'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2.2"/><path d="M9 8h6M9 12h6M9 16h3.5"/></svg>',
+  ext  :'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>'
+};
+
+const NAV = [
+  { key:"all",    name:"すべてのファイル", icon:I.files, tone:"t-pink"   },
+  { key:"fav",    name:"お気に入り★",     icon:I.star,  tone:"t-orange" },
+  { key:"recent", name:"最近使った資料",   icon:I.clock, tone:"t-green"  },
+  { key:"pdf",    name:"PDF",              icon:I.pdf,   tone:"t-pink"   },
+  { key:"sheets", name:"スプシ",           icon:I.sheet, tone:"t-green"  },
+  { key:"slides", name:"スライド",         icon:I.deck,  tone:"t-orange" },
+  { key:"docs",   name:"ドキュメント",     icon:I.form,  tone:"t-purple" }
+];
+
+const state = { nav:"all", q:"" };
+const el = id => document.getElementById(id);
+
+/* ------------------------------------------------------------
+   お気に入り（☆ ⇄ ★）
+   初期値はシートB列の「よく使う★」。以降の変更はこの端末のブラウザに保存する
+   ------------------------------------------------------------ */
+const FAV_KEY = "portal-fav-v1";
+let favSet = new Set(FILES.filter(f => f.fav).map(f => f.row));
+try{
+  const saved = JSON.parse(localStorage.getItem(FAV_KEY) || "null");
+  if(Array.isArray(saved)) favSet = new Set(saved);
+}catch(e){}
+
+const isFav = f => favSet.has(f.row);
+
+function toggleFav(row){
+  favSet.has(row) ? favSet.delete(row) : favSet.add(row);
+  try{ localStorage.setItem(FAV_KEY, JSON.stringify([...favSet])); }catch(e){}
+  render();
+}
+
+/* 種類（E列）の表記ゆれをまとめて判定する */
+const isType = (f, list) => list.some(t => f.type.toUpperCase().includes(t));
+
+function matchNav(f){
+  switch(state.nav){
+    case "all":    return true;
+    case "fav":    return isFav(f);
+    case "recent": return f.row >= 39;
+    case "pdf":    return isType(f, ["PDF"]);
+    case "sheets": return isType(f, ["スプレッドシート","スプシ","EXCEL","XLSX","スシート"]);
+    case "slides": return isType(f, ["スライド","PPT","PPTX","パワーポイント"]);
+    case "docs":   return isType(f, ["ドキュメント","DOC","DOCX","WORD","フォーム","FORM"]);
+    default:       return true;
+  }
+}
+function matchQuery(f){
+  const q = state.q.trim().toLowerCase();
+  if(!q) return true;
+  return [f.label, f.file, f.owner, f.type, ...f.tags].join(" ").toLowerCase().includes(q);
+}
+const visible = () => FILES.filter(f => matchNav(f) && matchQuery(f));
+
+function countFor(key){
+  const saved = state.nav; state.nav = key;
+  const n = FILES.filter(f => matchNav(f) && matchQuery(f)).length;
+  state.nav = saved; return n;
+}
+
+function renderNav(){
+  el("navlist").innerHTML = NAV.map(n => `
+    <button class="navitem" role="tab" data-nav="${n.key}" aria-current="${state.nav===n.key}">
+      <span class="tile ${n.tone}" aria-hidden="true">${n.icon}</span>
+      <span>${n.name}</span>
+      <span class="chip">${countFor(n.key)}</span>
+    </button>`).join("");
+  el("navlist").querySelectorAll("[data-nav]").forEach(b => {
+    b.addEventListener("click", () => { state.nav = b.dataset.nav; render(); });
+  });
+}
+
+function renderGrid(){
+  const list = visible();
+
+  if(!list.length){
+    el("grid").innerHTML = `
+      <div class="empty">
+        <h3>該当するファイルはありません</h3>
+        <p>この分類の資料はまだインデックスに登録されていません。<br>
+        シートに行を追加すると、このポータルにも並びます。</p>
+      </div>`;
+    return;
+  }
+
+  el("grid").innerHTML = list.map(f => `
+    <div class="card g-${f.tone}">
+      <a class="card-hit" href="${f.url}" target="_blank" rel="noopener"
+         title="${f.label}（${f.file}）を閲覧URLで開く"
+         aria-label="${f.label} を閲覧URLで開く"></a>
+      <div class="thumb">
+        ${THUMBS[f.row] ? `<img src="${THUMBS[f.row]}" alt="${f.label} の1ページ目" loading="lazy">` : ""}
+        <span class="badge-ext">${f.type}</span>
+      </div>
+      <button class="fav-btn" data-fav="${f.row}" aria-pressed="${isFav(f)}"
+              title="${isFav(f) ? "お気に入りから外す" : "お気に入りに追加"}"
+              aria-label="${f.label} を${isFav(f) ? "お気に入りから外す" : "お気に入りに追加"}">${isFav(f) ? "★" : "☆"}</button>
+      <div class="card-name">${f.label}</div>
+      <div class="card-foot">
+        <span class="owner">${f.owner === "—" ? "管理者未設定" : f.owner}</span>
+        <span class="go">開く ${I.ext}</span>
+      </div>
+    </div>`).join("");
+
+  /* ☆ボタン：リンクへ飛ばさずお気に入りだけ切り替える */
+  el("grid").querySelectorAll("[data-fav]").forEach(b => {
+    b.addEventListener("click", ev => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      toggleFav(Number(b.dataset.fav));
+    });
+  });
+}
+
+function render(){ renderNav(); renderGrid(); }
+
+el("q").addEventListener("input", e => {
+  state.q = e.target.value;
+  el("clearBtn").hidden = !state.q;
+  render();
+});
+el("clearBtn").addEventListener("click", () => {
+  state.q = ""; el("q").value = ""; el("clearBtn").hidden = true; el("q").focus(); render();
+});
+el("folderLink").href = VIEW_URL;
+render();
+</script>
