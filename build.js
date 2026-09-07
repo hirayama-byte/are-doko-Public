@@ -10,13 +10,15 @@ const tdir = path.join(dir, "thumbs");
 // --- サムネイルを data URI で埋め込む -------------------------------------
 // 外部画像は CSP や Drive の認証で表示できないため、base64 で本文に埋め込む
 const thumbs = {};
-for (const row of [33, 34, 35, 36, 37, 38, 39, 40, 41]) {
+for (const row of [33, 34, 35, 36, 37, 38, 39, 40, 41, 14, 15, 19, 25, 26]) {
   const p = path.join(tdir, row + ".jpg");
   if (!fs.existsSync(p)) { console.log("missing thumb:", row); continue; }
   thumbs[row] = "data:image/jpeg;base64," + fs.readFileSync(p).toString("base64");
 }
 
 if (!tpl.includes("__THUMBS_JSON__")) throw new Error("placeholder __THUMBS_JSON__ not found");
+// 未確定の閲覧URLが残ったまま公開しないための見張り
+if (tpl.includes("__H19_URL__")) console.log("⚠️  未設定の閲覧URL（__H19_URL__）が残っています。push 前に必ず差し替えてください");
 const filled = tpl.replace("__THUMBS_JSON__", JSON.stringify(thumbs));
 
 // --- head / body に分割 ----------------------------------------------------

@@ -392,7 +392,25 @@ const FILES = [
     tags:["新聞折込の約3倍リーチ","世帯カバー率","中日新聞朝刊折込との比較","くれよん配布部数"] },
   { row:41, label:"バイラルプラン", file:"バイラルプラン資料_K.pdf", type:"PDF", fav:false, owner:"—", tone:"orange",
     url:VIEW_URL,
-    tags:["VIRAL PLAN","情報誌×Meta広告","Instagram広告","月30,000円〜","業種別掲載実績"] }
+    tags:["VIRAL PLAN","情報誌×Meta広告","Instagram広告","月30,000円〜","業種別掲載実績"] },
+
+  /* --- 2026-09-07 追加：シートB列が「更新前」の5件（14 / 15 / 19 / 25 / 26 行目） ---
+     この5件は閲覧URLが1件ずつ違うので VIEW_URL は使わず個別に持たせている       */
+  { row:14, label:"割付_毎月", file:"割付（毎月）", type:"Excel", fav:false, owner:"川村", tone:"pink",
+    url:"https://kcdesign-my.sharepoint.com/:f:/g/personal/cross002_kcdesign_onmicrosoft_com/Eu8741f7zupGuom9upfl2t0BsuIi8RHstENVWrFqqATxNQ",
+    tags:["割付","管理表","毎月","OneDrive","営業"] },
+  { row:15, label:"カンプ振り出しリスト", file:"カンプ振り出しリスト", type:"Excel", fav:false, owner:"浅井", tone:"blue",
+    url:"https://docs.google.com/spreadsheets/d/1MPlt6kDY9yNtrLLHy23QR9VQAMuIiRoXp9rIMUDvR0E/edit",
+    tags:["カンプ振り出し","カンプ","ケイクリのデータあれこれ","管理表","営業"] },
+  { row:19, label:"必須枠一覧", file:"必須枠一覧.xlsx", type:"Excel", fav:false, owner:"浅井", tone:"green",
+    url:"__H19_URL__",
+    tags:["必須枠","必須枠一覧","●期","管理表","営業"] },
+  { row:25, label:"メディアガイド（教育本）", file:"2026_メディアガイド.pdf", type:"PDF", fav:false, owner:"堀井", tone:"purple",
+    url:"https://drive.google.com/drive/folders/1Cck1TpDuMas8g4cmFfU1SvqQJ5eqsZjW",
+    tags:["メディアガイド","教育本","お仕事ノート","お仕事ブック","営業資料","各種書類関連"] },
+  { row:26, label:"企画概要書（教育本）", file:"【営業用企画書】2027N_〇〇市版", type:"フォルダ", fav:false, owner:"堀井", tone:"orange",
+    url:"https://drive.google.com/drive/folders/1Cck1TpDuMas8g4cmFfU1SvqQJ5eqsZjW",
+    tags:["営業資料","企画概要書","教育本","お仕事ノート","各種書類関連"] }
 ];
 
 const I = {
@@ -491,11 +509,14 @@ function renderGrid(){
     return;
   }
 
+  /* 閲覧URLが未設定の行は、404へ飛ばさないようにリンクを張らない */
+  const hasUrl = f => f.url && !f.url.startsWith("__");
+
   el("grid").innerHTML = list.map(f => `
     <div class="card g-${f.tone}">
-      <a class="card-hit" href="${f.url}" target="_blank" rel="noopener"
+      ${hasUrl(f) ? `<a class="card-hit" href="${f.url}" target="_blank" rel="noopener"
          title="${f.label}（${f.file}）を閲覧URLで開く"
-         aria-label="${f.label} を閲覧URLで開く"></a>
+         aria-label="${f.label} を閲覧URLで開く"></a>` : ""}
       <div class="thumb">
         ${THUMBS[f.row] ? `<img src="${THUMBS[f.row]}" alt="${f.label} の1ページ目" loading="lazy">` : ""}
         <span class="badge-ext">${f.type}</span>
@@ -506,7 +527,7 @@ function renderGrid(){
       <div class="card-name">${f.label}</div>
       <div class="card-foot">
         <span class="owner">${f.owner === "—" ? "管理者未設定" : f.owner}</span>
-        <span class="go">開く ${I.ext}</span>
+        <span class="go">${hasUrl(f) ? `開く ${I.ext}` : "リンク未設定"}</span>
       </div>
     </div>`).join("");
 
