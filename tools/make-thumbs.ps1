@@ -20,7 +20,7 @@ function AwaitAction($action) {
 [Windows.Storage.Streams.InMemoryRandomAccessStream,Windows.Storage.Streams,ContentType=WindowsRuntime] | Out-Null
 
 $src = "G:\共有ドライブ\BOXからの移行データ\★媒体資料★\1.よく使う媒体資料"
-$out = "C:\Users\c114059\AppData\Local\Temp\claude\C--Users-c114059\d9548507-e370-4d5d-831d-dea2f5660eac\scratchpad\thumbs"
+$out = "C:/Users/c114059/are-doko/thumbs"
 if (-not (Test-Path $out)) { New-Item -ItemType Directory -Path $out | Out-Null }
 
 $map = @(
@@ -33,6 +33,8 @@ $map = @(
   @{ row = 39; f = "新LP商材_2604.pdf" }
   @{ row = 40; f = "新聞折り込み比較表_K.pdf" }
   @{ row = 41; f = "バイラルプラン資料_K.pdf" }
+  @{ row = 50; f = "ヒアリングシート_K.pdf" }
+  @{ row = 51; f = "同時配布ご案内資料_新聞比較表入り_K.pdf" }
 )
 
 # JPEG エンコーダ（品質指定）

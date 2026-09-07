@@ -360,11 +360,18 @@ img{ display:block; }
 /* サムネイル画像（対象ファイルの1ページ目を埋め込み） */
 const THUMBS = __THUMBS_JSON__;
 
-/* H列の閲覧URL（33〜41行は9行とも同じフォルダを指している） */
+/* 「1.よく使う媒体資料」フォルダの閲覧URL。媒体資料系はここに固まっている */
 const VIEW_URL = "https://drive.google.com/drive/folders/1K09MgX8KPz6VqrlBZF01K3s3diOHLn2S?usp=sharing";
 
-/* データ：インデックスシート「インデックス」33〜41行目
-   label = D列 ／ file = 実ファイル名 ／ owner = I列 ／ url = H列の閲覧URL ／ tags = J列 */
+/* データ：インデックスシート「インデックス」より
+   label = D列 ／ file = 実ファイル名 ／ owner = I列 ／ url = H列の閲覧URL ／ tags = J列
+
+   ⚠️ row はカードを識別するための固定IDで、**今のシートの行番号とは一致しない**。
+      シートに行が挿入されるとズレるが、row は
+        ・サムネイル（thumbs/<row>.jpg）の対応付け
+        ・お気に入りの保存キー（localStorage）
+      に使っているので、**一度決めたら変えない**（変えると全員の★が消える）。
+      追加時は「そのときのシート行番号」を新しいIDとして使う。既存IDは触らない。 */
 const FILES = [
   { row:33, label:"SP事例集_ペライチ", file:"SP事例集_ペライチver_K.pdf", type:"PDF", fav:false, owner:"上ヶ市", tone:"pink",
     url:VIEW_URL,
@@ -410,7 +417,21 @@ const FILES = [
     tags:["メディアガイド","教育本","お仕事ノート","お仕事ブック","営業資料","各種書類関連"] },
   { row:26, label:"企画概要書（教育本）", file:"【営業用企画書】2027N_〇〇市版", type:"フォルダ", fav:false, owner:"堀井", tone:"orange",
     url:"https://drive.google.com/drive/folders/1Cck1TpDuMas8g4cmFfU1SvqQJ5eqsZjW",
-    tags:["営業資料","企画概要書","教育本","お仕事ノート","各種書類関連"] }
+    tags:["営業資料","企画概要書","教育本","お仕事ノート","各種書類関連"] },
+
+  /* --- 2026-09-07 追加：シートB列が「▲更新前」の4件（21 / 22 / 50 / 51 行目） ------ */
+  { row:21, label:"御見積書ベース", file:"御見積書ベース", type:"Excel", fav:false, owner:"平山", tone:"green",
+    url:"https://drive.google.com/drive/folders/112vDF2c7crP9-Us2zH3iAYYWNnVxwFSA",
+    tags:["御見積書","見積書","ベース","営業資料","ケイクリのデータあれこれ"] },
+  { row:22, label:"新規取引登録書", file:"新規取引登録書", type:"Excel", fav:false, owner:"平山", tone:"purple",
+    url:"https://drive.google.com/drive/folders/112vDF2c7crP9-Us2zH3iAYYWNnVxwFSA",
+    tags:["新規取引","取引登録","新規登録","営業資料","ケイクリのデータあれこれ"] },
+  { row:50, label:"ヒアリングシート", file:"ヒアリングシート_K.pdf", type:"PDF", fav:false, owner:"上ヶ市", tone:"pink",
+    url:VIEW_URL,
+    tags:["ヒアリングシート","課題解決型","制作","よく使う媒体資料"] },
+  { row:51, label:"同時配布ご案内資料", file:"同時配布ご案内資料_新聞比較表入り_K.pdf", type:"PDF", fav:false, owner:"上ヶ市", tone:"blue",
+    url:VIEW_URL,
+    tags:["同時配布","ご案内資料","新聞比較表入り","制作","よく使う媒体資料"] }
 ];
 
 const I = {
@@ -456,6 +477,10 @@ function toggleFav(row){
   render();
 }
 
+/* 「最近使った資料」に出す row。もとは `row >= 39` という書き方だったが、
+   それだと資料を追加するたび新しい row が勝手にここへ混ざるので、明示リストにした */
+const RECENT = new Set([39, 40, 41]);
+
 /* 種類（E列）の表記ゆれをまとめて判定する */
 const isType = (f, list) => list.some(t => f.type.toUpperCase().includes(t));
 
@@ -463,7 +488,7 @@ function matchNav(f){
   switch(state.nav){
     case "all":    return true;
     case "fav":    return isFav(f);
-    case "recent": return f.row >= 39;
+    case "recent": return RECENT.has(f.row);
     case "pdf":    return isType(f, ["PDF"]);
     case "sheets": return isType(f, ["スプレッドシート","スプシ","EXCEL","XLSX","スシート"]);
     case "slides": return isType(f, ["スライド","PPT","PPTX","パワーポイント"]);
