@@ -10,7 +10,7 @@ const tdir = path.join(dir, "thumbs");
 // --- サムネイルを data URI で埋め込む -------------------------------------
 // 外部画像は CSP や Drive の認証で表示できないため、base64 で本文に埋め込む
 const thumbs = {};
-for (const row of [33, 34, 35, 36, 37, 38, 39, 40, 41, 14, 15, 19, 25, 26, 21, 22, 50, 51, 52]) {
+for (const row of [33, 34, 35, 36, 37, 38, 39, 40, 41, 14, 15, 19, 25, 26, 21, 22, 50, 51, 52, 53, 54]) {
   const p = path.join(tdir, row + ".jpg");
   if (!fs.existsSync(p)) { console.log("missing thumb:", row); continue; }
   thumbs[row] = "data:image/jpeg;base64," + fs.readFileSync(p).toString("base64");
